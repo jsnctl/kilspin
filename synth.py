@@ -1,15 +1,14 @@
-from pyo import Pattern, Fader, RCOsc, Delay, midiToHz, threading
+from pyo import Pattern, Fader, RCOsc, Delay, midiToHz, threading, Sine, SuperSaw
 from random import choice
-import matplotlib.pyplot as plt
-from IPython import display
+
+def scaler(root):
+    scale = [0, 12, 24]
+    return choice([root + val for val in scale])
 
 
-class Synth:
+class BaseSynth:
 
     def __init__(self):
-        self.amp = Fader(fadein=0.005, fadeout=0.05, mul=.15)
-        self.osc = RCOsc(freq=[100, 100], mul=self.amp).out()
-        self.delay = Delay(self.osc, delay=0.1, feedback=0.9).out()
         self.notes = None
         self.roots = None
         self.cloud = Pattern(function=self._cloud, time=0.095)
@@ -32,16 +31,24 @@ class Synth:
         self.amp.play()
 
     def _progression(self):
-        root = next(self.roots, 35)
+        root = next(self.roots)
         self.notes = [scaler(root) for _ in range(100)]
 
 
-def scaler(root):
-    scale = [0, 12, 24]
-    return choice([root + val for val in scale])
+class Simple(BaseSynth):
+
+    def __init__(self, delay=0.1, feedback=0.9):
+        super().__init__()
+        self.amp = Fader(fadein=0.005, fadeout=0.05, mul=.15)
+        self.osc = RCOsc(freq=[100, 100], mul=self.amp).out()
+        self.delay = Delay(self.osc, delay=delay, feedback=feedback).out()
 
 
+class Fancy(BaseSynth):
 
-
-
+    def __init__(self, delay=0.1, feedback=0.9):
+        super().__init__()
+        self.amp = Fader(fadein=0.5, fadeout=0.05, mul=.15)
+        self.osc = SuperSaw(freq=[100, 100], mul=self.amp).out()
+        self.delay = Delay(self.osc, delay=delay, feedback=feedback).out()
 
